@@ -1,8 +1,10 @@
 greeting:
   message: "hello"
-quarkus:
-  quinoa:
-    ui-root-path: "quinoa"
-    package-manager-install:
-      node-version: "20.10.0"
-      "~": true
+
+# Custom i18n configuration
+i18n:
+  messages:
+    base-name: messages
+    encoding: UTF-8
+    cache-duration: 3600
+    fallback-locale: en
