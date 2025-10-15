@@ -15,8 +15,10 @@ quarkus:
     exporter:
       otlp:
         logs:
-          enabled: false
-        traces:
-          enabled: false
-        metrics:
-          enabled: false
+          enabled: true
+          endpoint: "http://localhost:4318"
+          timeout: "1s"
+          batch:
+            enabled: true
+            delay: "1s"
+            max-queue-size: 100
