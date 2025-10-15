@@ -8,3 +8,15 @@ i18n:
     encoding: UTF-8
     cache-duration: 3600
     fallback-locale: en
+
+# OpenTelemetry configuration
+quarkus:
+  otel:
+    exporter:
+      otlp:
+        logs:
+          enabled: false
+        traces:
+          enabled: false
+        metrics:
+          enabled: false

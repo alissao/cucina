@@ -1,0 +1,23 @@
+welcome: "Bienvenue dans notre application!"
+greeting: "Bonjour, {name}!"
+user:
+  created: "Utilisateur créé avec succès"
+  updated: "Utilisateur mis à jour avec succès"
+  deleted: "Utilisateur supprimé avec succès"
+  not_found: "Utilisateur non trouvé"
+  already_exists: "L'utilisateur existe déjà"
+error:
+  validation:
+    required: "Ce champ est obligatoire"
+    invalid_email: "Format d'email invalide"
+    password_too_short: "Le mot de passe doit contenir au moins 8 caractères"
+    password_mismatch: "Les mots de passe ne correspondent pas"
+  server:
+    internal: "Erreur interne du serveur"
+    unauthorized: "Accès non autorisé"
+    forbidden: "Accès interdit"
+    not_found: "Ressource non trouvée"
+success:
+  operation_completed: "Opération terminée avec succès"
+  data_saved: "Données sauvegardées avec succès"
+  data_deleted: "Données supprimées avec succès"

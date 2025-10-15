@@ -1,0 +1,23 @@
+welcome: "¡Bienvenido a nuestra aplicación!"
+greeting: "¡Hola, {name}!"
+user:
+  created: "Usuario creado exitosamente"
+  updated: "Usuario actualizado exitosamente"
+  deleted: "Usuario eliminado exitosamente"
+  not_found: "Usuario no encontrado"
+  already_exists: "El usuario ya existe"
+error:
+  validation:
+    required: "Este campo es obligatorio"
+    invalid_email: "Formato de email inválido"
+    password_too_short: "La contraseña debe tener al menos 8 caracteres"
+    password_mismatch: "Las contraseñas no coinciden"
+  server:
+    internal: "Error interno del servidor"
+    unauthorized: "Acceso no autorizado"
+    forbidden: "Acceso prohibido"
+    not_found: "Recurso no encontrado"
+success:
+  operation_completed: "Operación completada exitosamente"
+  data_saved: "Datos guardados exitosamente"
+  data_deleted: "Datos eliminados exitosamente"
