@@ -17,8 +17,10 @@ import jakarta.ws.rs.QueryParam
  *         val restClientExtensions = myRemoteService.getExtensionsById("io.quarkus:quarkus-rest-client")
  *     }
  * ```
+ * 
+ * Note: This service is disabled in development to avoid external connection issues.
  */
-@RegisterRestClient(baseUri = "https://stage.code.quarkus.io/api")
+@RegisterRestClient(baseUri = "https://stage.code.quarkus.io/api", configKey = "my-remote-service")
 interface MyRemoteService {
 
     @GET

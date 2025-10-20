@@ -1,0 +1,81 @@
+HEXAGONAL ARCHITECTURE DIAGRAM
+================================
+
+                    ┌─────────────────────────────────────┐
+                    │           INFRASTRUCTURE            │
+                    │              LAYER                  │
+                    │                                     │
+                    │  ┌─────────────┐  ┌─────────────┐  │
+                    │  │    REST     │  │Persistence  │  │
+                    │  │  Adapters   │  │  Adapters   │  │
+                    │  │             │  │             │  │
+                    │  │I18nResource │  │YamlMessage- │  │
+                    │  │GreetingRes. │  │BundleRepo.  │  │
+                    │  └─────────────┘  └─────────────┘  │
+                    └─────────────────────────────────────┘
+                                      │
+                                      ▼
+                    ┌─────────────────────────────────────┐
+                    │          APPLICATION                │
+                    │              LAYER                  │
+                    │                                     │
+                    │  ┌─────────────┐  ┌─────────────┐  │
+                    │  │   PORTS     │  │  USE CASES  │  │
+                    │  │             │  │             │  │
+                    │  │MessageSvc-  │  │GetMessage   │  │
+                    │  │Port         │  │UseCase      │  │
+                    │  │             │  │GetAllMsgs   │  │
+                    │  │             │  │DetectLocale │  │
+                    │  └─────────────┘  └─────────────┘  │
+                    │                                     │
+                    │  ┌─────────────────────────────────┐ │
+                    │  │      APPLICATION SERVICES       │ │
+                    │  │                                 │ │
+                    │  │        MessageService           │ │
+                    │  └─────────────────────────────────┘ │
+                    └─────────────────────────────────────┘
+                                      │
+                                      ▼
+                    ┌─────────────────────────────────────┐
+                    │            DOMAIN                   │
+                    │              LAYER                  │
+                    │                                     │
+                    │  ┌─────────────┐  ┌─────────────┐  │
+                    │  │  ENTITIES   │  │VALUE OBJECTS│  │
+                    │  │             │  │             │  │
+                    │  │MessageBundle│  │Locale       │  │
+                    │  │             │  │MessageKey   │  │
+                    │  │             │  │Message      │  │
+                    │  └─────────────┘  └─────────────┘  │
+                    │                                     │
+                    │  ┌─────────────┐  ┌─────────────┐  │
+                    │  │   DOMAIN    │  │ REPOSITORY  │  │
+                    │  │  SERVICES   │  │ INTERFACES  │  │
+                    │  │             │  │             │  │
+                    │  │MessageReso- │  │MessageBundle│  │
+                    │  │lutionSvc    │  │Repository   │  │
+                    │  └─────────────┘  └─────────────┘  │
+                    └─────────────────────────────────────┘
+
+DEPENDENCY FLOW:
+================
+Infrastructure → Application → Domain
+
+KEY PRINCIPLES:
+===============
+1. Domain Layer has NO external dependencies
+2. Application Layer depends only on Domain
+3. Infrastructure Layer depends on both Application and Domain
+4. Business logic is isolated in Domain layer
+5. External concerns are handled by Infrastructure adapters
+6. Use cases orchestrate business operations
+7. Ports define contracts between layers
+
+BENEFITS:
+=========
+✅ Separation of Concerns
+✅ Testability
+✅ Flexibility
+✅ Maintainability
+✅ Business Logic Isolation
+✅ Technology Independence

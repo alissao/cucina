@@ -9,16 +9,16 @@ i18n:
     cache-duration: 3600
     fallback-locale: en
 
-# OpenTelemetry configuration
+# OpenTelemetry configuration - disabled for development
 quarkus:
   otel:
     exporter:
       otlp:
         logs:
-          enabled: true
-          endpoint: "http://localhost:4318"
-          timeout: "1s"
-          batch:
-            enabled: true
-            delay: "1s"
-            max-queue-size: 100
+          enabled: false
+          # endpoint: "http://localhost:4318"
+          # timeout: "1s"
+          # batch:
+          #   enabled: true
+          #   delay: "1s"
+          #   max-queue-size: 100

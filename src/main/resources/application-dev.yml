@@ -1,0 +1,25 @@
+# Development-specific configuration
+# This file disables external services for local development
+
+quarkus:
+  # Disable external service connections for development
+  otel:
+    exporter:
+      otlp:
+        logs:
+          enabled: false
+        traces:
+          enabled: false
+        metrics:
+          enabled: false
+  # Disable database for development (we're only using i18n functionality)
+  datasource:
+    jdbc: false
+  hibernate-orm:
+    enabled: false
+  # Disable REST client for external services
+  rest-client:
+    my-remote-service:
+      url: "http://localhost:9999"  # Dummy URL to avoid connection errors
+      connect-timeout: 1000
+      read-timeout: 1000
