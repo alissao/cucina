@@ -67,14 +67,19 @@ docker-run: ## Run application in Docker
 	docker run -i --rm -p $(PORT):$(PORT) $(APP_NAME):1.0.0-SNAPSHOT
 
 .PHONY: docker-compose-up
-docker-compose-up: ## Start services with docker-compose
-	@echo "$(GREEN)Starting services with docker-compose...$(NC)"
-	cd src/main/docker/docker-compose && docker-compose up -d
+docker-compose-up: ## Start services with docker compose
+	@echo "$(GREEN)Starting services with docker compose...$(NC)"
+	cd src/main/docker/docker-compose && docker compose up -d
 
 .PHONY: docker-compose-down
-docker-compose-down: ## Stop services with docker-compose
-	@echo "$(GREEN)Stopping services with docker-compose...$(NC)"
-	cd src/main/docker/docker-compose && docker-compose down
+docker-compose-down: ## Stop services with docker compose
+	@echo "$(GREEN)Stopping services with docker compose...$(NC)"
+	cd src/main/docker/docker-compose && docker compose down
+
+.PHONY: docker-compose-ps
+docker-compose-ps: ## Start services with docker compose
+	@echo "$(GREEN)Services running with docker compose...$(NC)"
+	cd src/main/docker/docker-compose && docker compose ps -a
 
 # Smoke Testing Commands
 .PHONY: smoke-test
@@ -90,13 +95,13 @@ smoke-test: ## Run comprehensive smoke tests against all endpoints
 
 .PHONY: smoke-test-health
 smoke-test-health: ## Test health check endpoints
-	@echo "$(GREEN)Testing health check endpoints...$(NC)"
-	@echo -n "  Testing /health/live: "
-	@curl -s -o /dev/null -w "%{http_code}" $(BASE_URL)/health/live | grep -q "200" && echo "$(GREEN)✅ PASS$(NC)" || echo "$(RED)❌ FAIL$(NC)"
-	@echo -n "  Testing /health/ready: "
-	@curl -s -o /dev/null -w "%{http_code}" $(BASE_URL)/health/ready | grep -q "200" && echo "$(GREEN)✅ PASS$(NC)" || echo "$(RED)❌ FAIL$(NC)"
-	@echo -n "  Testing /health: "
-	@curl -s -o /dev/null -w "%{http_code}" $(BASE_URL)/health | grep -q "200" && echo "$(GREEN)✅ PASS$(NC)" || echo "$(RED)❌ FAIL$(NC)"
+	@echo "$(GREEN)Testing Quarkus health endpoints (/q/health)...$(NC)"
+	@echo -n "  Testing /q/health/live: "
+	@curl -s -o /dev/null -w "%{http_code}" $(BASE_URL)/q/health/live | grep -q "200" && echo "$(GREEN)✅ PASS$(NC)" || echo "$(RED)❌ FAIL$(NC)"
+	@echo -n "  Testing /q/health/ready: "
+	@curl -s -o /dev/null -w "%{http_code}" $(BASE_URL)/q/health/ready | grep -q "200" && echo "$(GREEN)✅ PASS$(NC)" || echo "$(RED)❌ FAIL$(NC)"
+	@echo -n "  Testing /q/health/started: "
+	@curl -s -o /dev/null -w "%{http_code}" $(BASE_URL)/q/health/started | grep -q "200" && echo "$(GREEN)✅ PASS$(NC)" || echo "$(RED)❌ FAIL$(NC)"
 	@echo ""
 
 .PHONY: smoke-test-basic
@@ -106,8 +111,6 @@ smoke-test-basic: ## Test basic application endpoints
 	@curl -s $(BASE_URL)/hello | grep -q "Hello from Quarkus REST" && echo "$(GREEN)✅ PASS$(NC)" || echo "$(RED)❌ FAIL$(NC)"
 	@echo -n "  Testing /q/info: "
 	@curl -s -o /dev/null -w "%{http_code}" $(BASE_URL)/q/info | grep -q "200" && echo "$(GREEN)✅ PASS$(NC)" || echo "$(RED)❌ FAIL$(NC)"
-	@echo -n "  Testing /q/metrics: "
-	@curl -s -o /dev/null -w "%{http_code}" $(BASE_URL)/q/metrics | grep -q "200" && echo "$(GREEN)✅ PASS$(NC)" || echo "$(RED)❌ FAIL$(NC)"
 	@echo ""
 
 .PHONY: smoke-test-i18n
@@ -140,15 +143,15 @@ smoke-test-verbose: ## Run smoke tests with verbose output
 	@echo "$(GREEN)Running smoke tests with verbose output...$(NC)"
 	@echo "$(YELLOW)Testing application endpoints at $(BASE_URL)$(NC)"
 	@echo ""
-	@echo "$(GREEN)=== Health Check Endpoints ===$(NC)"
-	@echo "GET $(BASE_URL)/health/live"
-	@curl -s $(BASE_URL)/health/live | jq . || curl -s $(BASE_URL)/health/live
+	@echo "$(GREEN)=== Quarkus Health Endpoints (/q/health) ===$(NC)"
+	@echo "GET $(BASE_URL)/q/health/live"
+	@curl -s $(BASE_URL)/q/health/live | jq . || curl -s $(BASE_URL)/q/health/live
 	@echo ""
-	@echo "GET $(BASE_URL)/health/ready"
-	@curl -s $(BASE_URL)/health/ready | jq . || curl -s $(BASE_URL)/health/ready
+	@echo "GET $(BASE_URL)/q/health/ready"
+	@curl -s $(BASE_URL)/q/health/ready | jq . || curl -s $(BASE_URL)/q/health/ready
 	@echo ""
-	@echo "GET $(BASE_URL)/health"
-	@curl -s $(BASE_URL)/health | jq . || curl -s $(BASE_URL)/health
+	@echo "GET $(BASE_URL)/q/health/started"
+	@curl -s $(BASE_URL)/q/health/started | jq . || curl -s $(BASE_URL)/q/health/started
 	@echo ""
 	@echo "$(GREEN)=== Basic Application Endpoints ===$(NC)"
 	@echo "GET $(BASE_URL)/hello"
@@ -203,3 +206,70 @@ ci-smoke-test: ## Run smoke tests for CI/CD (non-interactive)
 	@$(MAKE) wait-for-app
 	@$(MAKE) smoke-test
 	@echo "$(GREEN)✅ CI smoke tests completed successfully!$(NC)"
+
+.PHONY: run-dev
+run-dev: ## Start all dev services and Quarkus in dev mode
+	@echo "$(GREEN)Bringing up dev services (docker compose)...$(NC)"
+	@$(MAKE) docker-compose-up
+	@echo "$(GREEN)Waiting for dev services to initialize...$(NC)"
+	@$(MAKE) wait-for-services
+	@echo "$(GREEN)Starting Quarkus in development mode...$(NC)"
+	./gradlew quarkusDev
+
+.PHONY: wait-for-services
+wait-for-services: ## Wait for key dev services (postgres,keycloak,kafka,redis,vault) to become reachable
+	@echo "$(GREEN)Waiting for dev services to become available...$(NC)"
+	@bash -c '\
+max=60; total=5; \
+for i in $$(seq 1 $$max); do \
+	ok=0; status=""; \
+	\
+	if (echo > /dev/tcp/localhost/5432) >/dev/null 2>&1; then \
+		ok=$$((ok+1)); \
+		status="$$status $(GREEN)✅ Postgres$(NC)"; \
+	else \
+		status="$$status $(RED)❌ Postgres$(NC)"; \
+	fi; \
+	\
+	if curl --head -fsS http://localhost:8081/health/ready >/dev/null 2>&1; then \
+		ok=$$((ok+1)); \
+		status="$$status $(GREEN)✅ Keycloak$(NC)"; \
+	else \
+		status="$$status $(RED)❌ Keycloak$(NC)"; \
+	fi; \
+	\
+	if (echo > /dev/tcp/localhost/9092) >/dev/null 2>&1; then \
+		ok=$$((ok+1)); \
+		status="$$status $(GREEN)✅ Kafka$(NC)"; \
+	else \
+		status="$$status $(RED)❌ Kafka$(NC)"; \
+	fi; \
+	\
+	if (echo > /dev/tcp/localhost/6379) >/dev/null 2>&1; then \
+		ok=$$((ok+1)); \
+		status="$$status $(GREEN)✅ Redis$(NC)"; \
+	else \
+		status="$$status $(RED)❌ Redis$(NC)"; \
+	fi; \
+	\
+	if curl -s -f --max-time 2 http://localhost:8200/v1/sys/health >/dev/null 2>&1; then \
+		ok=$$((ok+1)); \
+		status="$$status $(GREEN)✅ Vault$(NC)"; \
+	else \
+		status="$$status $(RED)❌ Vault$(NC)"; \
+	fi; \
+	\
+	if [ $$ok -eq $$total ]; then \
+		echo "$(GREEN)✅ All dev services ready! (attempt $$i)$(NC)"; \
+		echo "$$status"; \
+		exit 0; \
+	fi; \
+	\
+	echo "Attempt $$i/$$max: $$ok/$$total services ready"; \
+	echo "$$status"; \
+	echo ""; \
+	sleep 2; \
+done; \
+echo "$(RED)❌ Dev services did not become ready in time (timeout after $$max attempts).$(NC)"; \
+echo "$$status"; \
+exit 1' || true

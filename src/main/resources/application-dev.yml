@@ -3,23 +3,53 @@
 
 quarkus:
   # Disable external service connections for development
-  otel:
-    exporter:
-      otlp:
-        logs:
-          enabled: false
-        traces:
-          enabled: false
-        metrics:
-          enabled: false
-  # Disable database for development (we're only using i18n functionality)
+
+  # Kafka bootstrap servers used by Kafka clients/tools
+  # Default to the host-mapped port from docker-compose (9092). You can override with env KAFKA_BOOTSTRAP.
+  kafka:
+    bootstrap.servers: "${KAFKA_BOOTSTRAP:localhost:9092}"
+
+  # Datasource (Postgres running in docker-compose)
+  # Uses localhost:5432 by default; override DB_HOST or DB_NAME/DB_USER/DB_PASS as needed.
   datasource:
-    jdbc: false
+    db-kind: postgresql
+    jdbc:
+      url: "jdbc:postgresql://${DB_HOST:localhost}:5432/${DB_NAME:cucina_db}"
+    username: "${DB_USER:cucina}"
+    password: "${DB_PASS:cucina}"
+
+  # Hibernate settings: enable and keep schema updated in dev
   hibernate-orm:
-    enabled: false
-  # Disable REST client for external services
-  rest-client:
-    my-remote-service:
-      url: "http://localhost:9999"  # Dummy URL to avoid connection errors
-      connect-timeout: 1000
-      read-timeout: 1000
+    enabled: true
+    database:
+      generation: update
+
+  # Redis (quarkus-redis-client)
+  redis:
+    hosts: "${REDIS_URL:redis://localhost:6379}"
+
+  # OIDC / Keycloak dev instance (Keycloak published on host:8081)
+  oidc:
+    # You can set KEYCLOAK_URL to override (e.g. http://localhost:8081)
+    auth-server-url: "${KEYCLOAK_URL:http://localhost:8081}/realms/master"
+    client-id: "${OIDC_CLIENT_ID:cucina-dev}"
+    credentials:
+      secret: "${OIDC_CLIENT_SECRET:change-me}"
+    # application-dev.yml — development settings for Quarkus (dev profile)
+
+  # Vault (dev mode from compose)
+  vault:
+    url: "${VAULT_URL:http://localhost:8200}"
+    #authentication: token
+    #token: "${VAULT_TOKEN:myroottoken}"
+
+  # OpenTelemetry exporters (point to local otel-collector)
+  opentelemetry:
+    traces:
+      exporter: otlp
+      otlp:
+        endpoint: "${OTEL_ENDPOINT:http://localhost:4318}"
+    metrics:
+      exporter: otlp
+      otlp:
+        endpoint: "${OTEL_ENDPOINT:http://localhost:4318}"
